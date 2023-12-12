@@ -1,0 +1,71 @@
+---
+title: "Covid19data"
+author: "Richard Ebersole"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries}
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+```
+
+## R Markdown
+
+
+
+```{r import data}
+url_in = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/"
+
+filenames = c("time_series_covid19_confirmed_global.csv", "time_series_covid19_deaths_global.csv", "time_series_covid19_deaths_US.csv", "time_series_covid19_confirmed_US.csv")
+
+urls = str_c(url_in, filenames)
+
+```
+
+
+##Read in data
+```{r read data}
+
+global_cases = read_csv(urls[1])
+global_deaths = read_csv(urls[2])
+us_cases = read_csv(urls[3])
+us_deaths = read_csv(urls[4])
+
+#preview them
+head(us_cases)
+head(us_deaths)
+
+```
+
+##Tidy
+```{r tidy}
+
+global_cases <- global_cases %>% pivot_longer(cols = -c('Province/State', 'Country/Region', Lat, Long), names_to = "date", values_to = "deaths")
+
+
+global_deaths <- global_deaths %>% pivot_longer(cols = -c('Province/State', 'Country/Region', Lat, Long), names_to = "date", values_to = "deaths")
+
+global <- global_cases %>% full_join(global_deaths) %>% rename(Country_Region = 'Country/Region', Province_State = 'Province/State') %>% mutate(date = mdy(date))
+
+summary(global)
+
+#global <- global %>% filter(cases > 0)
+
+
+```
+
+
+##Vizualization
+```{r}
+global %>% ggplot(aes(x = date, y = deaths))
+
+
+```
+
